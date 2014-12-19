@@ -57,7 +57,51 @@ extern NSString *const kAppiraterReminderRequestDate;
 #define APPIRATER_APP_NAME				APPIRATER_LOCALIZED_APP_NAME ? APPIRATER_LOCALIZED_APP_NAME : [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"]
 
 /*!
+ This is the title of the enjoy alert that users will see.
+ */
+#define APPIRATER_LOCALIZED_ENJOY_ALERT_TITLE NSLocalizedStringFromTableInBundle(@"Feedback", @"AppiraterLocalizable", [Appirater bundle], nil)
+
+/*!
  This is the message your users will see once they've passed the day+launches
+ threshold.
+ */
+#define APPIRATER_LOCALIZED_ENJOY_ALERT_MESSAGE NSLocalizedStringFromTableInBundle(@"Do you enjoy using %@?", @"AppiraterLocalizable", [Appirater bundle], nil)
+#define APPIRATER_ENJOY_ALERT_MESSAGE [NSString stringWithFormat:APPIRATER_LOCALIZED_ENJOY_ALERT_MESSAGE, APPIRATER_APP_NAME]
+/*!
+ The text of the button that prompts reviewing the app.
+ */
+#define APPIRATER_ENJOY_ALERT_YES_BUTTON			NSLocalizedStringFromTableInBundle(@"Yes", @"AppiraterLocalizable", [Appirater bundle], nil)
+
+/*!
+ The text of the button that prompts for user feedback.
+ */
+#define APPIRATER_ENJOY_ALERT_NO_BUTTON			NSLocalizedStringFromTableInBundle(@"Not Really", @"AppiraterLocalizable", [Appirater bundle], nil)
+
+/*!
+ This is the title of the send feedback alert that users will see.
+ */
+#define APPIRATER_LOCALIZED_SEND_FEEDBACK_ALERT_TITLE NSLocalizedStringFromTableInBundle(@"Contact us", @"AppiraterLocalizable", [Appirater bundle], nil)
+
+/*!
+ This is the message your users will see once once they've declared that they're not enjoying the app
+ threshold.
+ */
+#define APPIRATER_LOCALIZED_SEND_FEEDBACK_ALERT_MESSAGE NSLocalizedStringFromTableInBundle(@"Would you care sending us your comments? Your feedcack will help us improve %@", @"AppiraterLocalizable", [Appirater bundle], nil)
+#define APPIRATER_SEND_FEEDBACK_ALERT_MESSAGE [NSString stringWithFormat:APPIRATER_LOCALIZED_SEND_FEEDBACK_ALERT_MESSAGE, APPIRATER_APP_NAME]
+
+/*!
+ The text of the button that prompts reviewing the app.
+ */
+#define APPIRATER_SEND_FEEDBACK_ALERT_YES_BUTTON			NSLocalizedStringFromTableInBundle(@"Yes", @"AppiraterLocalizable", [Appirater bundle], nil)
+
+/*!
+ The text of the button that prompts for user feedback.
+ */
+#define APPIRATER_SEND_FEEDBACK_ALERT_NO_BUTTON			NSLocalizedStringFromTableInBundle(@"No", @"AppiraterLocalizable", [Appirater bundle], nil)
+
+
+/*!
+ This is the message your users will see once they've declared that they're enjoying the app
  threshold.
  */
 #define APPIRATER_LOCALIZED_MESSAGE     NSLocalizedStringFromTableInBundle(@"If you enjoy using %@, would you mind taking a moment to rate it? It won't take more than a minute. Thanks for your support!", @"AppiraterLocalizable", [Appirater bundle], nil)
@@ -86,11 +130,16 @@ extern NSString *const kAppiraterReminderRequestDate;
 #define APPIRATER_RATE_LATER			NSLocalizedStringFromTableInBundle(@"Remind me later", @"AppiraterLocalizable", [Appirater bundle], nil)
 
 @interface Appirater : NSObject <UIAlertViewDelegate, SKStoreProductViewControllerDelegate> {
-
-	UIAlertView		*ratingAlert;
+    
+    UIAlertView		*ratingAlert;
 }
 
+@property(nonatomic, strong) UIAlertView *enjoyAlert;
 @property(nonatomic, strong) UIAlertView *ratingAlert;
+@property(nonatomic, strong) UIAlertView *sendFeedbackAlert;
+
+@property (nonatomic) BOOL usesTwoStepRating; // See the setter signature for description
+
 @property(nonatomic) BOOL openInAppStore;
 #if __has_feature(objc_arc_weak)
 @property(nonatomic, weak) NSObject <AppiraterDelegate> *delegate;
@@ -157,7 +206,7 @@ extern NSString *const kAppiraterReminderRequestDate;
  Tells Appirater to show the prompt (a rating alert).
  Similar to tryToShowPrompt, but without checks (the prompt is always displayed).
  Passing false will hide the rate later button on the prompt.
-  
+ 
  The only case where you should call this is if your app has an
  explicit "Rate this app" command somewhere. This is similar to rateApp,
  but instead of jumping to the review directly, an intermediary prompt is displayed.
@@ -168,7 +217,7 @@ extern NSString *const kAppiraterReminderRequestDate;
  Tells Appirater to open the App Store page where the user can specify a
  rating for the app. Also records the fact that this has happened, so the
  user won't be prompted again to rate the app.
-
+ 
  The only case where you should call this directly is if your app has an
  explicit "Rate this app" command somewhere.  In all other cases, don't worry
  about calling this -- instead, just call the other functions listed above,
@@ -179,20 +228,21 @@ extern NSString *const kAppiraterReminderRequestDate;
 
 /*!
  Tells Appirater to immediately close any open rating modals (e.g. StoreKit rating VCs).
-*/
+ */
 + (void)closeModal;
 
 /*!
  Asks Appirater if the user has declined to rate;
-*/
+ */
 - (BOOL)userHasDeclinedToRate;
 
 /*!
  Asks Appirater if the user has rated the current version.
- Note that this is not a guarantee that the user has actually rated the app in the 
- app store, but they've just clicked the rate button on the Appirater dialog. 
-*/
+ Note that this is not a guarantee that the user has actually rated the app in the
+ app store, but they've just clicked the rate button on the Appirater dialog.
+ */
 - (BOOL)userHasRatedCurrentVersion;
+
 
 @end
 
@@ -234,6 +284,11 @@ extern NSString *const kAppiraterReminderRequestDate;
  */
 + (void) setSignificantEventsUntilPrompt:(NSInteger)value;
 
+
+/*!
+ This value specifies if the rating prompt will be two step (do you enjoy the app? -> Rate if so)
+ or one step (prompt immediately for rating just like the classsic appirater does) */
++ (void)setUsesTwoStepRating:(BOOL)twoStepRating;
 
 /*!
  Once the rating alert is presented to the user, they might select
@@ -305,7 +360,7 @@ extern NSString *const kAppiraterReminderRequestDate;
 
 /*!
  The bundle localized strings will be loaded from.
-*/
+ */
 +(NSBundle *)bundle;
 
 @end
@@ -318,7 +373,7 @@ extern NSString *const kAppiraterReminderRequestDate;
  
  Calls [Appirater appLaunched:YES]. See appLaunched: for details of functionality.
  */
-+ (void)appLaunched __attribute__((deprecated)); 
++ (void)appLaunched __attribute__((deprecated));
 
 /*!
  DEPRECATED: While still functional, it's better to use
