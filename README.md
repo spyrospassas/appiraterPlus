@@ -1,5 +1,13 @@
-Introduction
-------------
+Introduction for Appirater Plus
+-------------------------------
+
+Appirater Plus is an extension of Appirater, giving the opportunity to provide a two step rating mechanism.
+At first the user is being asked wether he likes the app or not. Depending on the answer he is then prompted to either rate the app (for a positive attitude) or to send feedback to the developers (for a negative opinion about the app). Delegate functions have been put in place in order to handle these cases appropriately.
+
+The use of Appirater Plus is exactly the same with Appirater, with the sole addition to add `[Appirater setUsesTwoStepRating:YES];` during initialization.
+
+Introduction to Appirater
+-------------------------
 Appirater is a class that you can drop into any iPhone app (iOS 4.0 or later) that will help remind your users
 to review your app on the App Store. The code is released under the MIT/X11, so feel free to
 modify and share your changes with the world. Read on below for how to get started. If you need any help using, 
@@ -29,6 +37,7 @@ Configuration
 [Appirater setUsesUntilPrompt:10];
 [Appirater setSignificantEventsUntilPrompt:-1];
 [Appirater setTimeBeforeReminding:2];
+[Appirater setUsesTwoStepRating:YES]; // For Appirater plus
 [Appirater setDebug:YES];
 ```
 
